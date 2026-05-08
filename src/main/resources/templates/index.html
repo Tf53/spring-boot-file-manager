@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>OneDrive File Manager</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 40px;
+      background-color: #f4f7f6;
+    }
+
+    h1 {
+      color: #2c3e50;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: white;
+    }
+
+    th,
+    td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid #ddd;
+    }
+
+    th {
+      background-color: #3498db;
+      color: white;
+    }
+
+    tr:hover {
+      background-color: #f1f1f1;
+    }
+
+    .delete-btn {
+      color: #e74c3c;
+      text-decoration: none;
+      font-weight: bold;
+    }
+
+    .reName-btn {
+      color: #3c64e7;
+      text-decoration: none;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>OneDrive ファイル一覧</h1>
+
+  <div style="margin-bottom: 20px;">
+    <!-- pathパラメータを空にしてルートへ戻る -->
+    <a th:href="@{/}" style="text-decoration: none;">
+      <button type="button"
+        style="padding: 10px 20px; cursor: pointer; background-color: #2c3e50; color: white; border: none; border-radius: 4px;">
+        🏠 ホーム（ルート）へ戻る
+      </button>
+    </a>
+  
+    <!-- 現在の場所を表示する（パンくずリスト的な役割） -->
+    <span style="margin-left: 15px; color: #7f8c8d;">
+      現在の場所: <strong>/ <span th:text="${currentPath}"></span></strong>
+    </span>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>ファイル名</th>
+        <th colspan="2">操作</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- JavaのList<String>の中身をループで表示 -->
+      <tr th:each="item : ${fileList}">
+        <td>
+          <a th:if="${item.isDirectory}"
+             th:href="@{/(path=${currentPath != '' ? currentPath + '/' + item.name : item.name})}"
+             th:text="'📁' + ${item.name}"></a>
+             
+          <span th:unless="${item.isDirectory}" th:text="'📄' + ${item.name}"></span>
+        </td>
+        <td>
+          <!-- 削除ボタン：クリックすると /delete?name=ファイル名 に飛ぶ -->
+          <form th:action="@{/delete}" method="post"> 
+            <input type="hidden" name="name" th:value="${item.name}" />
+            <input type="hidden" name="parentPath" th:value="${currentPath}" />
+            <input type="hidden" name="targetPath" 
+              th:value="${currentPath != '' ? currentPath + '/' + item.name : item.name}" />
+            <button type="submit" class="delete-btn" onclick="return confirm('本当に削除しますか？')">削除</button>
+          </form>
+        </td>
+        <td>
+          <form th:action="@{/changeFileName}" method="post">
+            <input type="hidden" name="oldName" th:value="${item.name}" />
+            <input type="hidden" name="currentPath" th:value="${currentPath}" />
+            <input type="text" name="newName" placeholder="新しいファイル名を入力" />
+            <button type="submit" class="reName-btn" onclick="return confirm('本当に変更しますか？')">名前の変更</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- メッセージ表示用（削除完了時など） -->
+  <p th:if="${message}" th:text="${message}" style="color: blue;"></p>
+
+</body>
+
+</html>
